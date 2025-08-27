@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PlusCircle, Upload, Loader } from "lucide-react";
-import { useProductStore } from "../stores/useProductStore.js";
+import { useProductStore } from "../stores/useProductStore";
+
 const categories = ["jeans", "t-shirts", "shoes", "glasses", "jackets", "suits", "bags"];
 
-
 const CreateProductForm = () => {
-    const [newProduct, setNewProduct] = useState({
+	const [newProduct, setNewProduct] = useState({
 		name: "",
 		description: "",
 		price: "",
@@ -14,40 +14,41 @@ const CreateProductForm = () => {
 		image: "",
 	});
 
-    const {createProduct, loading} = useProductStore();
+	const { createProduct, loading } = useProductStore();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await createProduct(newProduct); 
-        setNewProduct({ name: "", description: "", price: "", category: "", image: ""})
-        } catch (error) {
-            console.log("error creating product")
-        }
-    }
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			await createProduct(newProduct);
+			setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
+		} catch {
+			console.log("error creating a product");
+		}
+	};
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0]; // the image that user selected
-        if(file){
-            const reader = new FileReader();
+	const handleImageChange = (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			const reader = new FileReader();
 
-            reader.onloadend = () => {
-                setNewProduct({ ...newProduct, image: reader.result });
-            };
-            
-            reader.readAsDataURL(file); //convert file to base64 format
-        } 
-    }
+			reader.onloadend = () => {
+				setNewProduct({ ...newProduct, image: reader.result });
+			};
 
-  return (
-    <motion.div
+			reader.readAsDataURL(file); // base64
+		}
+	};
+
+	return (
+		<motion.div
 			className='bg-gray-800 shadow-lg rounded-lg p-8 mb-8 max-w-xl mx-auto'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.8 }}
 		>
 			<h2 className='text-2xl font-semibold mb-6 text-emerald-300'>Create New Product</h2>
-            <form onSubmit={handleSubmit} className='space-y-4'>
+
+			<form onSubmit={handleSubmit} className='space-y-4'>
 				<div>
 					<label htmlFor='name' className='block text-sm font-medium text-gray-300'>
 						Product Name
@@ -65,7 +66,6 @@ const CreateProductForm = () => {
 					/>
 				</div>
 
-                
 				<div>
 					<label htmlFor='description' className='block text-sm font-medium text-gray-300'>
 						Description
@@ -125,7 +125,7 @@ const CreateProductForm = () => {
 				</div>
 
 				<div className='mt-1 flex items-center'>
-					<input type='file' id='image' className='sr-only' accept='image/*' onChange={handleImageChange} /> 
+					<input type='file' id='image' className='sr-only' accept='image/*' onChange={handleImageChange} />
 					<label
 						htmlFor='image'
 						className='cursor-pointer bg-gray-700 py-2 px-3 border border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500'
@@ -155,9 +155,8 @@ const CreateProductForm = () => {
 						</>
 					)}
 				</button>
-            </form>
-    </motion.div>
-  )
-}
-
-export default CreateProductForm
+			</form>
+		</motion.div>
+	);
+};
+export default CreateProductForm;

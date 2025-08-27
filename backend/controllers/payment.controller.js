@@ -128,7 +128,7 @@ async function createStripeCoupon(discountPercentage) {
 }
 
 async function createNewCoupon(userId) {
-	await Coupon.findOneAndDelete({ userId }); // find and delete the old coupon code because each user has only 1 coupon at the same time
+	await Coupon.findOneAndDelete({ userId });
 
 	const newCoupon = new Coupon({
 		code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),

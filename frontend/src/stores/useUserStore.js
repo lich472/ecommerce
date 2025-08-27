@@ -1,30 +1,29 @@
-import {create} from "zustand"
-import axios from "../lib/axios.js"
-import {toast} from "react-hot-toast"
+import { create } from "zustand";
+import axios from "../lib/axios.js";
+import { toast } from "react-hot-toast";
 
 export const useUserStore = create((set, get) => ({
-    user: null,
-    loading: false,
-    checkingAuth: true,
+	user: null,
+	loading: false,
+	checkingAuth: true,
 
-    signup: async ({name,email,password,confirmPassword}) => { // when user sign up
-        set({ loading: true });
+	signup: async ({ name, email, password, confirmPassword }) => {
+		set({ loading: true });
 
-        if(password !== confirmPassword){
-            set({ loading: false });
-            return toast.error("Password do not match");
-        }
+		if (password !== confirmPassword) {
+			set({ loading: false });
+			return toast.error("Passwords do not match");
+		}
 
-        try {
-            const res = await axios.post("/auth/signup", {name,email,password});
-            set({ user: res.data,loading: false });
-        } catch (error) {
-            set({ loading: false });
-            toast.error(error.response.data.message || "An error occurred");
-        }
-    }, 
-
-    login: async (email, password) => {
+		try {
+			const res = await axios.post("/auth/signup", { name, email, password });
+			set({ user: res.data, loading: false });
+		} catch (error) {
+			set({ loading: false });
+			toast.error(error.response.data.message || "An error occurred");
+		}
+	},
+	login: async (email, password) => {
 		set({ loading: true });
 
 		try {
@@ -37,7 +36,7 @@ export const useUserStore = create((set, get) => ({
 		}
 	},
 
-    logout: async () => {
+	logout: async () => {
 		try {
 			await axios.post("/auth/logout");
 			set({ user: null });
@@ -46,8 +45,7 @@ export const useUserStore = create((set, get) => ({
 		}
 	},
 
-    // a function for signup page when user successful signed up, when they refresh the page -> they are still in home page
-    checkAuth: async () => {
+	checkAuth: async () => {
 		set({ checkingAuth: true });
 		try {
 			const response = await axios.get("/auth/profile");
@@ -58,9 +56,8 @@ export const useUserStore = create((set, get) => ({
 		}
 	},
 
-    refreshToken: async () => {
-		// Prevent multiple simultaneous refresh attempts
-		if (get().checkingAuth) return;
+	refreshToken: async () => {
+		if (get().checkingAuth) return; // prevent multiple simultaneous refresh attempts
 
 		set({ checkingAuth: true });
 		try {
@@ -72,40 +69,38 @@ export const useUserStore = create((set, get) => ({
 			throw error;
 		}
 	},
-
 }));
 
-// TODO: Implement the axios interceptors for refreshing access token - it means when user already signed up and using website, they dont to need to log in after access token expired 
+// TODO: Implement the axios interceptors for refreshing access token
 
-// Axios interceptor for token refresh with "refreshToken()" above
+// Axios interceptor for token refresh
 let refreshPromise = null;
 
 axios.interceptors.response.use(
-	(response) => response,
-	async (error) => {
-		const originalRequest = error.config;
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
 
-			try {
-				// If a refresh is already in progress, wait for it to complete
-				if (refreshPromise) {
-					await refreshPromise;
-					return axios(originalRequest);
-				}
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
 
-				// Start a new refresh process
-				refreshPromise = useUserStore.getState().refreshToken();
-				await refreshPromise;
-				refreshPromise = null;
+            try {
+                if (!refreshPromise) {
+                    refreshPromise = useUserStore.getState().refreshToken();
+                }
+                await refreshPromise;
+                refreshPromise = null;
 
-				return axios(originalRequest);
-			} catch (refreshError) {
-				// If refresh fails, redirect to login or handle as needed
-				useUserStore.getState().logout();
-				return Promise.reject(refreshError);
-			}
-		}
-		return Promise.reject(error);
-	}
+                return axios(originalRequest); // retry original request
+            } catch (refreshError) {
+                useUserStore.getState().logout(); // force logout if refresh fails
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
 );
+
+
+
